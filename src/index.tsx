@@ -1,13 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import { IntlProvider } from 'react-intl';
 import App from './App';
+import { viMessages } from './locales';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  //<React.StrictMode>
+    <IntlProvider locale='vi' defaultLocale='vi' messages={viMessages}>
+        <App />
+    </IntlProvider>
+  //</React.StrictMode>
+  ,
   document.getElementById('root')
 );
 
