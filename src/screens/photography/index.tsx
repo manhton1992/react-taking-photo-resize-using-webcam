@@ -4,6 +4,8 @@ import { SmallCard } from '../../components/Card'
 import { PHOTOGRAPHY } from '../../assets/styles/constants'
 import { StyledClose, StyledThubnail } from './styled'
 import { Button, Form, Modal } from 'antd'
+import { ImageSlide } from '../../components/ImageSlide'
+import { imageObject } from '../../models'
 
 const videoConstraints = {
     width: PHOTOGRAPHY.WIDTH,
@@ -11,47 +13,45 @@ const videoConstraints = {
     facingMode: PHOTOGRAPHY.USER_FACINGMODE
 }
 
-interface imageObject {
-    id: number,
-    src: any,
-}
-
-const Photography: React.FC = () => {
+const Photography: React.FC = (): JSX.Element => {
     const webcamRef = useRef<Webcam>(null);
-    const [image, setImage] = useState<Array<imageObject>>([]);
+    const [listImages, setlistImages] = useState<imageObject[]>([]);
     const [isPhotoModalVisible, setIsPhotoModalVisible] = useState<boolean>(false)
-
+    const [showImageSlide, setShowImageSlide] = useState<boolean>(false)
+    const [slideImageIndex, setSlideImageIndex] = useState<number>(0)
+    
     const capture = React.useCallback(
         () => {
-            setImage((prevImage: any) => [...prevImage, {
-                id: prevImage.length,
-                src: webcamRef.current?.getScreenshot(),
-            }
-            ])
+            addPhoto(webcamRef.current?.getScreenshot())
         },
         [webcamRef]
     );
 
-    const deletePhoto = (id: number) => {
-        setImage((prevImage: any) => prevImage.filter((item: any, i: number) => i !== id))
-        console.log(image)
+    const addPhoto = (src: any) => {
+        setlistImages((prevlistImages: any) => [...prevlistImages, {
+            src: src,
+        }
+        ])
+    }
+
+    const deletePhoto = (index: number) => {
+        setlistImages((prevlistImages: any) => prevlistImages.filter((item: any, i: number) => i !== index))
     }
 
     return (
         <div>
             <Form>
                 <SmallCard>
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            onClick={() => {
-                                setIsPhotoModalVisible(true);
-                            }}
-                            block
-                        >
-                            Chụp ảnh sản phẩm
-                  </Button>
-                    </Form.Item>
+
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            setIsPhotoModalVisible(true);
+                        }}
+                        block
+                    >
+                        Chụp ảnh sản phẩm
+                    </Button>
                     <Modal
                         visible={isPhotoModalVisible}
                         bodyStyle={{ padding: 0 }}
@@ -72,23 +72,38 @@ const Photography: React.FC = () => {
                         />
                         <Button block type={'primary'} onClick={capture}>Capture photo</Button>
                     </Modal>
+
                 </SmallCard>
-                {image && image.length > 0 ?
+                {listImages && listImages.length > 0 ?
                     <SmallCard>
                         {
-                            image.map(image => {
+                            listImages.map((image, idx) => {
                                 return (
-                                    <div key={image.id}>
-                                        <StyledThubnail src={image.src} alt="anh chup" />
-                                        <StyledClose onClick={() => deletePhoto(image.id)} />
+                                    <div key={idx} style={{ position: 'relative', display: 'inline-block' }}>
+                                        <StyledThubnail onClick={() => { setShowImageSlide(true); setSlideImageIndex(idx) }} src={image.src} alt="anh chup" />
+                                        <StyledClose onClick={() => deletePhoto(idx)} />
                                     </div>
                                 )
                             })
                         }
-
                     </SmallCard>
                     : null
                 }
+
+                <Modal
+                    visible={showImageSlide}
+                    bodyStyle={{ padding: '0px' }}
+                    maskStyle={{ backgroundColor: "rgba(0,0,0,0.85)" }}
+                    closable={false}
+                    onCancel={() => { setShowImageSlide(false) }}
+                    footer={null}
+                    width={PHOTOGRAPHY.WIDTH}
+                >
+                    <ImageSlide data={listImages} index={slideImageIndex} />
+                </Modal>
+
+
+
             </Form>
         </div>
     );
